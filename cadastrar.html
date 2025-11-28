@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CtrlWallet - Controle de Despesas</title>
+    <link rel="stylesheet" href="style1.css">
+
+</head>
+
+<body>
+    <header>
+        <h1>CtrlWallet</h1>
+        <p class="subtitle">Controle simples de despesas e ganhos</p>
+    </header>
+
+    <div class="container">
+        <!-- Cards de Totais -->
+        <div class="cards-container">
+            <div class="card card-ganho">
+                <div class="card-label">Ganho Total</div>
+                <div class="card-value">R$ 0000.00</div>
+                <div class="card-icon">↗</div>
+            </div>
+
+            <div class="card card-despesa">
+                <div class="card-label">Despesa Total</div>
+                <div class="card-value">R$ 0000.00</div>
+                <div class="card-icon">↘</div>
+            </div>
+
+            <div class="card card-saldo">
+                <div class="card-label">Saldo</div>
+                <div class="card-value">R$ 0000.00</div>
+                <div class="card-icon">💰</div>
+            </div>
+        </div>
+
+        <!-- Seção de Formulários -->
+        <div class="forms-section">
+            <!-- Novo Registro -->
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Novo Registro</h2>
+                    <p>Adicione uma despesa ou ganho</p>
+                </div>
+
+                <form id="transactionForm">
+                    <div class="tab-buttons">
+                        <button type="button" class="tab-btn active" data-type="despesa">Despesa</button>
+                        <button type="button" class="tab-btn" data-type="ganho">Ganho</button>
+                    </div>
+
+                    <div class="input-group">
+                        <input id="valor" placeholder="Valor (R$ 0000.00) " required>
+                    </div>
+
+                    <div class="input-group" id="categoriaContainer">
+                        <select required>
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="utilidades">Utilidades</option>
+                            <option value="telefone">Telefone</option>
+                            <option value="seguros">Seguros</option>
+                            <option value="vestuario">Vestuário</option>
+                            <option value="higiene">Higiene Pessoal</option>
+                            <option value="pets">Pets</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn-submit" onclick="insert()">Adicionar</button>
+                </form>
+            </div>
+
+            <!-- Nova Meta -->
+            <div class="form-container">
+                <div class="form-header-meta">
+                    <h2>Nova Meta</h2>
+                    <p>Defina uma meta financeira</p>
+                </div>
+
+                <form id="metaForm">
+                    <div class="input-group">
+                        <input id="meta" type="text" placeholder="Nome da meta (ex: Viagem, Carro)" required>
+                    </div>
+
+                    <div class="input-group">
+                        <input id="valormeta" type="text" placeholder="Valor (R$ 0000.00)" required>
+                    </div>
+
+                    <div class="input-group">
+                        <input id="tempo" type="text" placeholder="Tempo estimado em meses (ex: 10, 20, 30 meses)"
+                            required>
+                    </div>
+
+                    <button type="button" class="btn-submit-meta" onclick="criarMeta()">Criar Meta</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Seção Principal -->
+        <div class="main-section">
+            <!-- Minhas Metas -->
+            <div class="metas-container">
+                <h2>Minhas Metas</h2>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="dashboard-container">
+                <h2>Dashboard - Análise por Categoria</h2>
+                <p class="dashboard-subtitle">Distribuição de Despesas</p>
+
+                <div class="chart-placeholder">
+                    <div>
+                        <canvas id="myChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <script>
+        let totalDespesa = 0.0;
+        let totalGanho = 0.0;
+        let tipoAtual = "despesa";
+        let myChart;
+
+        const categorias = {
+            alimentacao: 0.0,
+            transporte: 0.0,
+            moradia: 0.0,
+            saude: 0.0,
+            educacao: 0.0,
+            lazer: 0.0,
+            utilidades: 0.0,
+            telefone: 0.0,
+            seguros: 0.0,
+            vestuario: 0.0,
+            higiene: 0.0,
+            pets: 0.0,
+            outro: 0.0
+        };
+
+        //criar dashboard
+        function criarDashboard() {
+            const ctx = document.getElementById('myChart');
+            if (myChart) {
+                myChart.destroy();
+            }
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['alimentação', 'transporte', 'moradia', 'saude', 'educação', 'lazer', 'utilidades', 'telefone', 'seguros', 'vestuario', 'higiene', 'pets', 'outro'],
+                    datasets: [{
+                        label: 'Value',
+                        data: [categorias.alimentacao, categorias.transporte, categorias.moradia, categorias.saude, categorias.educacao, categorias.lazer, categorias.utilidades, categorias.telefone, categorias.seguros, categorias.vestuario, categorias.higiene, categorias.pets, categorias.outro],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        criarDashboard();
+
+
+
+
+
+
+        // Controle das abas
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tipoAtual = button.dataset.type;
+
+                const categoriaDiv = document.getElementById('categoriaContainer');
+                categoriaDiv.style.display = tipoAtual === "ganho" ? "none" : "block";
+            });
+        });
+
+        // Campo de valor com filtro
+        const inputValue = document.getElementById("valor");
+        inputValue.addEventListener("input", () => {
+            inputValue.value = inputValue.value.replace(/[^\d.,]/g, "");
+        });
+        const inputValueMeta = document.getElementById("valormeta");
+        inputValueMeta.addEventListener("input", () => {
+            inputValueMeta.value = inputValueMeta.value.replace(/[^\d.,]/g, "");
+        });
+
+        // Função INSERT
+        function insert() {
+            const valorInput = document.getElementById("valor");
+            const numero = Number(valorInput.value.replace(",", "."));
+
+            if (!numero) {
+                alert("Digite um valor válido!");
+                return;
+            }
+
+            if (tipoAtual === "despesa") {
+                const select = document.querySelector('select');
+                const categoria = select.value;
+
+                categorias[categoria] += numero;
+                totalDespesa += numero;
+
+                document.querySelector('.card-despesa .card-value').textContent =
+                    `R$ ${totalDespesa.toFixed(2)}`;
+            } else {
+                totalGanho += numero;
+
+                document.querySelector('.card-ganho .card-value').textContent =
+                    `R$ ${totalGanho.toFixed(2)}`;
+            }
+
+            // Atualiza saldo
+            const saldo = totalGanho - totalDespesa;
+            document.querySelector('.card-saldo .card-value').textContent =
+                `R$ ${saldo.toFixed(2)}`;
+
+            valorInput.value = "";
+            criarDashboard();
+        }
+
+        // Impedir que o formulário recarregue
+        document.getElementById('transactionForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+        });
+        document.getElementById('metaForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+        });
+
+
+        function criarMeta() {
+            // 1. Pegar os elementos e valores
+            const metaInput = document.getElementById("meta");
+            const metaNome = metaInput.value; // CORRIGIDO: Agora a variável chama metaNome
+
+            const valorInput = document.getElementById("valormeta");
+            // Limpeza robusta do valor (troca vírgula por ponto e remove letras)
+            const valorConvertido = Number(valorInput.value.replace(/[^\d,]/g, "").replace(",", "."));
+
+            const tempoInput = document.getElementById("tempo");
+            const tempo = Number(tempoInput.value);
+
+            // Validação básica
+            if (!metaNome || !valorConvertido || !tempo) {
+                alert("Preencha todos os campos corretamente!");
+                return;
+            }
+            if (totalGanho === 0) {
+                alert("Adicione pelo menos um ganho antes de criar uma meta!");
+                return;
+            }
+
+            // 2. Chamada POST para a API
+            fetch("http://localhost:8080/planejar/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    rendaMensal: String(totalGanho),    // Usando suas variáveis globais
+                    gastoMensal: String(totalDespesa),  // Usando suas variáveis globais
+                    montante: String(valorConvertido),
+                    tempoMeses: String(tempo)
+                })
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Erro na requisição');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Sucesso:", data);
+
+                    // CORREÇÃO: Removemos o alert(data) que mostrava [object Object]
+
+                    // 3. Adicionar o card na tela
+                    // Agora passamos 'metaNome' que foi definido lá em cima
+                    adicionarCardNaTela(metaNome, data.dinheiroDisponivel, data.tempoNecessario, valorConvertido);
+
+                    // 4. Limpar campos após o sucesso
+                    metaInput.value = "";
+                    valorInput.value = "";
+                    tempoInput.value = "";
+                })
+                .catch(error => {
+                    console.error("Erro:", error);
+                    alert("Erro ao conectar com a API. Verifique se o servidor Java está rodando.");
+                });
+        } const metaInput = document.getElementById("meta");
+
+
+        function adicionarCardNaTela(nome, valorMensalDisponivel, mesesNecessarios, valorTotal) {
+            const container = document.querySelector('.metas-container');
+
+            // Cria o HTML do card dinamicamente
+            const novoCard = document.createElement('div');
+            novoCard.classList.add('meta-card');
+
+            // Formatações para moeda
+            const valorFormatado = valorMensalDisponivel.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const totalFormatado = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            novoCard.innerHTML = `
+        <div class="meta-header">
+            <span class="meta-name">${nome.toUpperCase()}</span>
+            <span style="font-size: 0.8em; color: #666;">Alvo: ${totalFormatado}</span>
+        </div>
+
+        <div class="meta-info-row">
+            <span class="meta-label">💰 Disponível/mês:</span>
+            <span class="meta-value positive">${valorFormatado}</span>
+        </div>
+
+        <div class="meta-info-row">
+            <span class="meta-label">⏱️ Tempo Real Estimado:</span>
+            <span class="meta-value" style="color: #2563eb; font-weight: bold;">${mesesNecessarios} meses</span>
+        </div>
+        
+        <button class="btn-generate-chart" onclick="alert('Funcionalidade futura!')">📊 Detalhes</button>
+    `;
+
+            // Adiciona o novo card logo após o título "Minhas Metas"
+            // (Ou use container.appendChild(novoCard) para adicionar no final)
+            container.appendChild(novoCard);
+        }
+
+
+        //cria dashboard fora da função e atualiza dashboard dentro da função
+
+        // Botão "Adicionar" deve ser type="button"
+
+    </script>
+</body>
+
+</html>
